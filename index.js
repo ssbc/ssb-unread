@@ -9,10 +9,10 @@ module.exports = {
   name: 'unread',
   version: require('./package.json').version,
   manifest: {
-    isUnread: 'async',
+    isRead: 'async',
     markRead: 'async',
-    unreadObs: 'sync',
-    // stream: 'source'
+    isReadObs: 'sync',
+    // isUnreadThrough: 'source' // stream via this module to check unread state of msgs as you go?
   },
   init: function (server, config) {
 
@@ -22,27 +22,31 @@ module.exports = {
     })
 
     const STARTED_AT = 'startedAt'
+    var startedAt
     db.get(STARTED_AT, (err, ts) => {
-      if (!ts) db.put(STARTED_AT, Date.now())
-      
-      // console.log(new Date(ts))
-      // db.put(STARTED_AT, Number(new Date(2018, 6, 1)))
+      if (ts) {
+        startedAt = ts
+        return
+      }
 
-      // NOTE: just using flume to get an up to date list of all messages piped to ssb-unread!
-      const VERSION = 1
-      var queue = []
-      server._flumeUse('unread-dummy-index', flumeView(
-        VERSION,
-        (_, msg) => {
-          db.put(msg.key, null, noop)
-
-          return _
-        }
-      ))
+      startedAt = Date.now
+      db.put(STARTED_AT, startedAt)
     })
 
-    function isUnread (key, cb) {
-      return db.get(key, (err, ts) => {
+    const VERSION = 0
+    server._flumeUse('unread-dummy-index', flumeView(
+      VERSION,
+      (_, msg) => {
+        db.put(msg.key, null, noop)
+
+        return _
+        // HACK: leveraging flume to access stream of newest messages
+      }
+    ))
+
+    // should take key?
+    function isRead (key, cb) {
+      db.get(key, (err, ts) => {
         if (err) cb(err)
         else cb(null, Boolean(ts))
       })
@@ -52,9 +56,9 @@ module.exports = {
       db.put(key, Date.now(), cb)
     }
 
-    function unreadObs (key) {
+    function isReadObs (key) {
       const obs = Value(null)
-      isUnread(key, (err, state) => {
+      isRead(key, (err, state) => {
         if (err) console.error(err)
         else obs.set(state)
       })
@@ -66,9 +70,9 @@ module.exports = {
     }
 
     return {
-      isUnread,
+      isRead,
       markRead,
-      unreadObs
+      isReadObs
     }
   }
 }
