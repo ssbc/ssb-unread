@@ -3,7 +3,7 @@ const mkdirp = require('mkdirp')
 const { join } = require('path')
 const level = require('level')
 const charwise = require('charwise')
-const Value = require('mutant/value')
+const { isMsg } = require('ssb-ref')
 
 module.exports = {
   name: 'unread',
@@ -11,7 +11,6 @@ module.exports = {
   manifest: {
     isRead: 'async',
     markRead: 'async',
-    isReadObs: 'sync',
     // isUnreadThrough: 'source' // stream via this module to check unread state of msgs as you go?
   },
   init: function (server, config) {
@@ -21,19 +20,9 @@ module.exports = {
       valueEncoding: charwise
     })
 
-    const STARTED_AT = 'startedAt'
-    var startedAt
-    db.get(STARTED_AT, (err, ts) => {
-      if (ts) {
-        startedAt = ts
-        return
-      }
+    markDbBirth(db)
 
-      startedAt = Date.now
-      db.put(STARTED_AT, startedAt)
-    })
-
-    const VERSION = 0
+    const VERSION = 1
     server._flumeUse('unread-dummy-index', flumeView(
       VERSION,
       (_, msg) => {
@@ -44,8 +33,9 @@ module.exports = {
       }
     ))
 
-    // should take key?
     function isRead (key, cb) {
+      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key')
+
       db.get(key, (err, ts) => {
         if (err) cb(err)
         else cb(null, Boolean(ts))
@@ -53,28 +43,30 @@ module.exports = {
     }
 
     function markRead (key, cb = noop) {
+      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key')
+
       db.put(key, Date.now(), cb)
-    }
-
-    function isReadObs (key) {
-      const obs = Value(null)
-      isRead(key, (err, state) => {
-        if (err) console.error(err)
-        else obs.set(state)
-      })
-
-      // remember pull-level
-      //   - could use for live updating ?
-
-      return obs
     }
 
     return {
       isRead,
       markRead,
-      isReadObs
     }
   }
+}
+
+function markDbBirth (db) {
+  const STARTED_AT = 'startedAt'
+  var startedAt
+  db.get(STARTED_AT, (err, ts) => {
+    if (ts) {
+      startedAt = ts
+      return
+    }
+
+    startedAt = Date.now
+    db.put(STARTED_AT, startedAt)
+  })
 }
 
 function noop () {}

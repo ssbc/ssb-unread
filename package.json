@@ -22,6 +22,6 @@
     "flumeview-reduce": "^1.3.13",
     "level": "^4.0.0",
     "mkdirp": "^0.5.1",
-    "mutant": "^3.22.1"
+    "ssb-ref": "^2.11.1"
   }
 }
