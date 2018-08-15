@@ -34,7 +34,7 @@ module.exports = {
     ))
 
     function isRead (key, cb) {
-      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key')
+      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key'))
 
       db.get(key, (err, ts) => {
         if (err) cb(err)
@@ -43,7 +43,7 @@ module.exports = {
     }
 
     function markRead (key, cb = noop) {
-      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key')
+      if (!isMsg(key)) return cb(null, new Error('ssb-unread requires a valid message key'))
 
       db.put(key, Date.now(), cb)
     }
