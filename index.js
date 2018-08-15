@@ -10,11 +10,10 @@ module.exports = {
   version: require('./package.json').version,
   manifest: {
     isRead: 'async',
-    markRead: 'async',
+    markRead: 'async'
     // isUnreadThrough: 'source' // stream via this module to check unread state of msgs as you go?
   },
   init: function (server, config) {
-
     mkdirp.sync(join(config.path, 'unread'))
     const db = level(join(config.path, 'unread'), {
       valueEncoding: charwise
@@ -50,7 +49,7 @@ module.exports = {
 
     return {
       isRead,
-      markRead,
+      markRead
     }
   }
 }
@@ -59,6 +58,8 @@ function markDbBirth (db) {
   const STARTED_AT = 'startedAt'
   var startedAt
   db.get(STARTED_AT, (err, ts) => {
+    if (err) return console.error(err)
+
     if (ts) {
       startedAt = ts
       return
