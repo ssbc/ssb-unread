@@ -19,8 +19,6 @@ module.exports = {
       valueEncoding: charwise
     })
 
-    markDbBirth(db)
-
     const VERSION = 1
     server._flumeUse('unread-dummy-index', flumeView(
       VERSION,
@@ -52,22 +50,6 @@ module.exports = {
       markRead
     }
   }
-}
-
-function markDbBirth (db) {
-  const STARTED_AT = 'startedAt'
-  var startedAt
-  db.get(STARTED_AT, (err, ts) => {
-    if (err) return console.error(err)
-
-    if (ts) {
-      startedAt = ts
-      return
-    }
-
-    startedAt = Date.now
-    db.put(STARTED_AT, startedAt)
-  })
 }
 
 function noop () {}
