@@ -56,17 +56,14 @@ module.exports = {
 
 function markDbBirth (db) {
   const STARTED_AT = 'startedAt'
-  var startedAt
   db.get(STARTED_AT, (err, ts) => {
-    if (err) return console.error(err)
-
-    if (ts) {
-      startedAt = ts
-      return
+    if (err && err.type !== 'NotFoundError') {
+      return console.error(err)
+    } else if (err === null) {
+      return // nothing to do
     }
 
-    startedAt = Date.now
-    db.put(STARTED_AT, startedAt)
+    db.put(STARTED_AT, Date.now())
   })
 }
 
