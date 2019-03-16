@@ -18,6 +18,12 @@ module.exports = {
     const db = level(join(config.path, 'unread'), {
       valueEncoding: charwise
     })
+    server.close.hook(function (fn, args) {
+      fn.apply(null, args)
+      db.close()
+
+      return fn
+    })
 
     markDbBirth(db)
 
