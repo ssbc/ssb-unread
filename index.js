@@ -19,10 +19,9 @@ module.exports = {
       valueEncoding: charwise
     })
     server.close.hook(function (fn, args) {
-      fn.apply(null, args)
       db.close()
 
-      return fn
+      return fn.apply(this, args)
     })
 
     markDbBirth(db)
