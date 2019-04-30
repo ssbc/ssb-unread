@@ -59,9 +59,8 @@ var pullParallelMap = require('pull-paramap')
 var config = Config()
 
 Client(config.keys, config, (err, server) => {
-
   pull(
-    pullMentions(server, server.id),  // server.id is my feedId
+    pullMentions(server),
     pullParallelMap((msg, cb) => {
       server.unread.isRead(msg.key, (err, bool) => {
         if (bool) cb(null, null) // drop the read messages
@@ -69,6 +68,7 @@ Client(config.keys, config, (err, server) => {
       })
     }),
     pull.filter(Boolean), // filter out the null entries
+    pull.take(20), // don't pull the whole database!
     pull.collect((err, unreadMentions) => {
       // ... do something
     })
@@ -78,8 +78,11 @@ Client(config.keys, config, (err, server) => {
 function pullMentions (server, feedId) {
   return server.backlinks.read({
     query: [{ 
-      $filter: { dest: feedId }
+      $filter: {
+        dest: server.id, // mentions about me
+      }
     }],
+    reverse: true,
     live: false
   })
   // Note this likely needs validation + sorting!
