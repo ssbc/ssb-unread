@@ -66,7 +66,7 @@ Client(config.keys, config, (err, server) => {
         if (bool) cb(null, null) // drop the read messages
         else cb(null, msg)
       })
-    }),
+    }, 5),
     pull.filter(Boolean), // filter out the null entries
     pull.take(20), // don't pull the whole database!
     pull.collect((err, unreadMentions) => {
