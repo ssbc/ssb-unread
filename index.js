@@ -11,7 +11,6 @@ module.exports = {
   manifest: {
     isRead: 'async',
     markRead: 'async'
-    // isUnreadThrough: 'source' // stream via this module to check unread state of msgs as you go?
   },
   init: function (server, config) {
     mkdirp.sync(join(config.path, 'unread'))
