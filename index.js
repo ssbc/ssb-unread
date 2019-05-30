@@ -29,8 +29,11 @@ module.exports = {
     server._flumeUse('unread-dummy-index', flumeView(
       VERSION,
       (_, msg) => {
+        // check if the message is already recorded in the unread store
+        // this is for the case you prune log.offset, and need to rebuild indexes
+        // but don't want to over-write existing unread state
         db.get(msg.key, (err, _) => {
-          if (err.notFound) db.put(msg.key, null, noop)
+          if (err && err.notFound) db.put(msg.key, null, noop)
         })
 
         return _
