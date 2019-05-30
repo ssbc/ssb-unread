@@ -29,7 +29,9 @@ module.exports = {
     server._flumeUse('unread-dummy-index', flumeView(
       VERSION,
       (_, msg) => {
-        db.put(msg.key, null, noop)
+        db.get(msg.key, (err, _) => {
+          if (err.notFound) db.put(msg.key, null, noop)
+        })
 
         return _
         // HACK: leveraging flume to access stream of newest messages
